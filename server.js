@@ -16,8 +16,6 @@ var Car    = require('./app/models/car'); // get our mongoose model
 // get an instance of the router for api routes
 var apiRoutes = express.Router();
 
-
-
 // =======================
 // configuration =========
 // =======================
@@ -47,6 +45,7 @@ app.get('/setup', function(req, res) {
     var nick = new User({
         name: 'Nick1',
         password: 'password',
+        email: 'email@gmail.com',
         admin: true
     });
 
@@ -59,6 +58,38 @@ app.get('/setup', function(req, res) {
     });
 });
 
+//check if email is already in the store
+
+app.post('/signUp',function(req,res){
+    var name = req.body.name || req.query.name;
+    var password = req.body.password || req.query.password;
+    var email= req.body.email || req.query.email;
+
+    if(email){
+        User.findOne({email:email}, function(err,user){
+            if(user) {
+                res.json({
+                    success: false,
+                    message: 'User with ' + user.email + ' is already defined'
+                });
+            }else{
+                var newUser = new User({
+                    name: name,
+                    password: password,
+                    email: email,
+                    admin: true
+                });
+                newUser.save(function(err) {
+                    if (err) throw err;
+
+                    console.log('User saved successfully');
+                    res.json({ success: true });
+                });
+            }
+        });
+
+    }
+});
 // TODO: route to authenticate a user (POST http://localhost:8080/api/authenticate)
 // route to authenticate a user (POST http://localhost:8080/api/authenticate)
 apiRoutes.post('/authenticate', function(req, res) {
@@ -99,10 +130,6 @@ apiRoutes.post('/authenticate', function(req, res) {
 
     });
 });
-
-
-
-
 
 // TODO: route middleware to verify a token
 // route middleware to verify a token
@@ -201,11 +228,6 @@ apiRoutes.get("/getCar",function(req,res){
     });
 
 });
-
-
-
-
-
 
 // apply the routes to our application with the prefix /api
 app.use('/api', apiRoutes);
